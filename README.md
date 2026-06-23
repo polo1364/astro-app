@@ -47,12 +47,27 @@ FRONTEND_URL=http://localhost:3000
 
 ## Railway 部署
 
-建立 Railway Project，新增兩個服務：
+> **若 Build Log 出現 `backend/`、`frontend/`、`Roulette.png` 並 Failed**  
+> 代表 Root Directory 仍是 repo 根目錄。請依下方步驟改為 `backend` 或 `frontend`。
+
+建立 Railway Project，新增 **兩個 Service**（同一個 GitHub repo）：
+
+| 服務 | Root Directory | Config 檔路徑（Settings 另填） |
+|------|----------------|--------------------------------|
+| Backend | `backend` | `/backend/railway.toml` |
+| Frontend | `frontend` | `/frontend/railway.toml` |
+
+### Railway 設定步驟（每個 Service 各做一次）
+
+1. 點進 Service → **Settings**
+2. **Root Directory** 填 `backend` 或 `frontend`（不要留空）
+3. **Config file path** 填 `/backend/railway.toml` 或 `/frontend/railway.toml`
+4. 儲存後按 **Redeploy**
 
 | 服務 | Root Directory | Start Command |
 |------|----------------|---------------|
-| Frontend | `frontend/` | `npm start` |
-| Backend | `backend/` | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Frontend | `frontend` | `npm run start` |
+| Backend | `backend` | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 
 **Frontend Variables:**
 - `NEXT_PUBLIC_API_URL` = backend 公開 URL

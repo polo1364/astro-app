@@ -27,6 +27,13 @@ class TransitRequest(NatalRequest):
     transit_time: str | None = Field(None, description="HH:MM or null for noon default")
 
 
+class AnalysisSection(CamelModel):
+    title: str
+    lines: list[str] = []
+    text: str = ""
+    evidence: list[str] = []
+
+
 class TransitAnalysisReport(CamelModel):
     section1_validity: AnalysisSection
     section2_highlights: AnalysisSection
@@ -97,13 +104,6 @@ class MetaOut(CamelModel):
     engine: str
     has_birth_time: bool = True
     location: str = ""
-
-
-class AnalysisSection(CamelModel):
-    title: str
-    lines: list[str] = []
-    text: str = ""
-    evidence: list[str] = []
 
 
 class NatalAnalysisReport(CamelModel):
