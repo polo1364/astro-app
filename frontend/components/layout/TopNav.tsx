@@ -11,6 +11,7 @@ import { DeepSeekSettingsModal } from "@/components/settings/DeepSeekSettingsMod
 import { ApiUsageModal } from "@/components/settings/ApiUsageModal";
 import { ChartHistoryModal } from "@/components/history/ChartHistoryModal";
 import { BirthProfileModal } from "@/components/profiles/BirthProfileModal";
+import { VisitorCountBadge } from "@/components/layout/VisitorCountBadge";
 import { useChartHistoryContext } from "@/lib/context/ChartHistoryContext";
 import { useBirthProfileContext } from "@/lib/context/BirthProfileContext";
 import { useMounted } from "@/lib/hooks/useMounted";
@@ -49,14 +50,7 @@ export function TopNav() {
                 </span>
               </div>
             </Link>
-            {visitorCount !== null && (
-              <span
-                className="text-[10px] text-text-muted tabular-nums shrink-0"
-                aria-label={`累計瀏覽 ${visitorCount.toLocaleString("zh-TW")} 人次`}
-              >
-                {visitorCount.toLocaleString("zh-TW")}
-              </span>
-            )}
+            {visitorCount !== null && <VisitorCountBadge count={visitorCount} />}
           </div>
 
           <nav className="flex items-center gap-1" aria-label="主要導覽">
@@ -100,10 +94,10 @@ export function TopNav() {
               variant="secondary"
               size="sm"
               onClick={() => setUsageOpen(true)}
-              aria-label="API 用量"
+              aria-label="解讀用量"
             >
               <ClientIcon icon={BarChart2} className="size-3.5" />
-              <span className="hidden sm:inline">API 用量</span>
+              <span className="hidden sm:inline">用量統計</span>
             </Button>
             {!deepSeekConfigured && (
               <Button

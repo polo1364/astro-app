@@ -13,7 +13,7 @@ interface ApiUsageModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function formatTokens(n: number): string {
+function formatNum(n: number): string {
   return n.toLocaleString("zh-TW");
 }
 
@@ -54,7 +54,7 @@ export function ApiUsageModal({ open, onOpenChange }: ApiUsageModalProps) {
               <div className="flex items-center gap-2">
                 <BarChart2 className="size-5 text-accent-natal" />
                 <Dialog.Title className="text-base font-semibold text-text-primary">
-                  API 用量統計
+                  解讀用量
                 </Dialog.Title>
               </div>
               <Dialog.Close asChild>
@@ -68,7 +68,7 @@ export function ApiUsageModal({ open, onOpenChange }: ApiUsageModalProps) {
             </div>
 
             <p id="api-usage-desc" className="text-sm text-text-secondary mb-4">
-              本 App 累計 DeepSeek API token 用量（依功能分類），非官方帳戶餘額。
+              本 App 累計 AI 解讀用量（依功能分類）。
             </p>
 
             {!backendOnline && (
@@ -85,7 +85,7 @@ export function ApiUsageModal({ open, onOpenChange }: ApiUsageModalProps) {
 
             {!loading && backendOnline && !hasData && (
               <Alert variant="info" className="mb-4">
-                尚無 AI 解讀記錄
+                尚無解讀記錄
               </Alert>
             )}
 
@@ -94,19 +94,19 @@ export function ApiUsageModal({ open, onOpenChange }: ApiUsageModalProps) {
                 <div className="grid grid-cols-2 gap-3 mb-5 text-sm">
                   <div className="rounded-md bg-white/5 px-3 py-2">
                     <div className="text-[10px] text-text-muted">總請求次數</div>
-                    <div className="font-semibold tabular-nums">{formatTokens(totals.requestCount)}</div>
+                    <div className="font-semibold tabular-nums">{formatNum(totals.requestCount)}</div>
                   </div>
                   <div className="rounded-md bg-white/5 px-3 py-2">
-                    <div className="text-[10px] text-text-muted">總 Token</div>
-                    <div className="font-semibold tabular-nums">{formatTokens(totals.totalTokens)}</div>
+                    <div className="text-[10px] text-text-muted">總用量</div>
+                    <div className="font-semibold tabular-nums">{formatNum(totals.totalTokens)}</div>
                   </div>
                   <div className="rounded-md bg-white/5 px-3 py-2">
-                    <div className="text-[10px] text-text-muted">輸入 Token</div>
-                    <div className="font-semibold tabular-nums">{formatTokens(totals.promptTokens)}</div>
+                    <div className="text-[10px] text-text-muted">輸入量</div>
+                    <div className="font-semibold tabular-nums">{formatNum(totals.promptTokens)}</div>
                   </div>
                   <div className="rounded-md bg-white/5 px-3 py-2">
-                    <div className="text-[10px] text-text-muted">輸出 Token</div>
-                    <div className="font-semibold tabular-nums">{formatTokens(totals.completionTokens)}</div>
+                    <div className="text-[10px] text-text-muted">輸出量</div>
+                    <div className="font-semibold tabular-nums">{formatNum(totals.completionTokens)}</div>
                   </div>
                 </div>
 
@@ -116,15 +116,15 @@ export function ApiUsageModal({ open, onOpenChange }: ApiUsageModalProps) {
                       <tr className="border-b border-border text-text-muted">
                         <th className="text-left px-3 py-2 font-medium">功能</th>
                         <th className="text-right px-3 py-2 font-medium">次數</th>
-                        <th className="text-right px-3 py-2 font-medium">Token</th>
+                        <th className="text-right px-3 py-2 font-medium">用量</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(summary?.byFeature ?? []).map((row) => (
                         <tr key={row.feature} className="border-b border-border/50 last:border-0">
                           <td className="px-3 py-2 text-text-secondary">{row.labelZh}</td>
-                          <td className="px-3 py-2 text-right tabular-nums">{formatTokens(row.requestCount)}</td>
-                          <td className="px-3 py-2 text-right tabular-nums">{formatTokens(row.totalTokens)}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{formatNum(row.requestCount)}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{formatNum(row.totalTokens)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -132,7 +132,7 @@ export function ApiUsageModal({ open, onOpenChange }: ApiUsageModalProps) {
                 </div>
 
                 <p className="mt-4 text-[10px] text-text-muted leading-relaxed">
-                  每日運勢（公開）含排程自動生成的 12 星座內容，次數可能高於手動操作。
+                  每日運勢含排程自動生成內容，次數可能高於手動操作。
                 </p>
               </>
             )}
