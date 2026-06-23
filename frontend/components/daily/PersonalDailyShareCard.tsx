@@ -96,8 +96,8 @@ export const PersonalDailyShareCard = forwardRef<
               >
                 <p
                   style={{
-                    margin: "0 0 6px",
-                    fontSize: 24,
+                    margin: "0 0 8px",
+                    fontSize: 26,
                     fontWeight: 600,
                     color: style.color,
                   }}
@@ -106,8 +106,8 @@ export const PersonalDailyShareCard = forwardRef<
                 </p>
                 <div
                   style={{
-                    fontSize: 22,
-                    lineHeight: 1.55,
+                    fontSize: 24,
+                    lineHeight: 1.6,
                     color: colors.text.primary,
                     whiteSpace: "pre-wrap",
                   }}

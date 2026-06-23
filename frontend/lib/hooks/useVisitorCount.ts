@@ -7,6 +7,31 @@ import { useMounted } from "@/lib/hooks/useMounted";
 import { getTaipeiYMD } from "@/lib/utils/taipeiDate";
 
 const VISITOR_ID_KEY = "visitor_id";
+const VISITOR_TOTAL_CACHE_KEY = "astro_visitor_total";
+
+function parseVisitorTotal(raw: { totalCount?: number; total_count?: number }): number {
+  const value = raw.totalCount ?? raw.total_count;
+  return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+function readCachedVisitorTotal(): number | null {
+  try {
+    const raw = localStorage.getItem(VISITOR_TOTAL_CACHE_KEY);
+    if (raw == null) return null;
+    const parsed = parseInt(raw, 10);
+    return Number.isFinite(parsed) ? Math.max(0, parsed) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedVisitorTotal(total: number): void {
+  try {
+    localStorage.setItem(VISITOR_TOTAL_CACHE_KEY, String(Math.max(0, total)));
+  } catch {
+    // ignore quota / private mode
+  }
+}
 
 function getOrCreateVisitorId(): string {
   const existing = localStorage.getItem(VISITOR_ID_KEY);
@@ -44,6 +69,11 @@ export function useVisitorCount(): number | null {
   useEffect(() => {
     if (!mounted) return;
 
+    const cached = readCachedVisitorTotal();
+    if (cached !== null) {
+      setCount(cached);
+    }
+
     let cancelled = false;
 
     async function load() {
@@ -53,17 +83,22 @@ export function useVisitorCount(): number | null {
           const result = await recordHomeVisit(visitorId);
           if (!cancelled) {
             markSentToday();
-            setCount(result.totalCount);
+            const total = parseVisitorTotal(result);
+            writeCachedVisitorTotal(total);
+            setCount(total);
           }
         } else {
           const result = await getVisitorTotal();
           if (!cancelled) {
-            setCount(result.totalCount);
+            const total = parseVisitorTotal(result);
+            writeCachedVisitorTotal(total);
+            setCount(total);
           }
         }
       } catch {
         if (!cancelled) {
-          setCount(null);
+          const cached = readCachedVisitorTotal();
+          setCount(cached);
         }
       }
     }
