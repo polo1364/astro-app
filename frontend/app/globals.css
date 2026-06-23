@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg-base: #05040b;
+  --color-bg-glass: rgba(5, 4, 11, 0.72);
+  --color-bg-stage: rgba(5, 4, 11, 0.82);
+  --color-text-primary: #f5f3ff;
+  --color-text-secondary: #ebe8f4;
+  --color-text-muted: #c9c4d8;
+  --color-text-gold: #f2e6b8;
+  --color-accent-natal: #c4b5fd;
+  --color-accent-transit: #fbbf24;
+  --color-accent-daily: #e8d5a3;
+  --color-border: rgba(232, 213, 163, 0.18);
+  --color-border-strong: rgba(232, 213, 163, 0.35);
+  --color-report-rule: #e8d5a3;
+  --color-report-ai: #a5f3fc;
+  --color-report-evidence: #c4b5fd;
+  --color-status-ok: #86efac;
+  --color-status-warn: #fcd34d;
+  --color-status-blocked: #fca5a5;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.625;
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.75;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.55;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.25;
+  --font-sans: var(--font-inter), var(--font-noto), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-mono: ui-monospace, "Cascadia Code", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  background: transparent;
+}
+
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: url("/astro.png") center / cover no-repeat fixed;
+}
+
+.app-bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 4, 11, 0.78) 0%,
+    rgba(5, 4, 11, 0.65) 50%,
+    rgba(5, 4, 11, 0.84) 100%
+  );
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .app-bg-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(5, 4, 11, 0.82) 0%,
+      rgba(5, 4, 11, 0.72) 50%,
+      rgba(5, 4, 11, 0.88) 100%
+    );
+  }
+}
+
+.glass {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+}
+
+.glass-strong {
+  background: var(--color-bg-stage);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border-strong);
+}
+
+.data-row {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.data-row-header {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--color-border-strong);
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.data-row-stack {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-row-stack:last-child {
+  border-bottom: none;
+}
+
+.chart-ring {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(196, 181, 253, 0.08);
+}
+
+[data-state="inactive"][role="tabpanel"] {
+  display: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-natal);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(232, 213, 163, 0.2);
+  border-radius: 3px;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+.dialog-overlay {
+  background: rgba(5, 4, 11, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #0d0b14;
+  color: #f5f3ff;
+}
+
+select option:disabled {
+  color: #6b6578;
+}
+
+@keyframes zodiac-wheel-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.zodiac-wheel-spin {
+  animation: zodiac-wheel-rotate var(--wheel-spin-duration, 96s) linear infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.zodiac-hit-zone {
+  transition: fill 0.15s ease;
+}
+
+.zodiac-hit-zone:hover,
+.zodiac-hit-zone--active {
+  fill: rgba(232, 213, 163, 0.2);
+}
+
+.zodiac-hit-zone:focus-visible {
+  fill: rgba(232, 213, 163, 0.25);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zodiac-wheel-spin {
+    animation: none;
+  }
+}

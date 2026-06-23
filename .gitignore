@@ -1,0 +1,22 @@
+node_modules/
+.next/
+out/
+dist/
+.env
+.env.local
+.env*.local
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
+*.log
+
+# 資料庫與暫存
+*.db
+backend/data/
+
+# IDE
+.cursor/
