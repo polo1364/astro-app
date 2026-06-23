@@ -1,7 +1,9 @@
 import { Inter, Noto_Sans_TC, Cormorant_Garamond } from "next/font/google";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProviders } from "@/components/providers/AppProviders";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { APP_NAME } from "@/lib/constants/appMeta";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,9 +25,35 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+const APP_DESCRIPTION = "繁中專業占星工作台，採 Swiss Ephemeris 星曆引擎";
+
 export const metadata: Metadata = {
-  title: "星象觀測台 — 專業占星工作台",
-  description: "星象觀測台 — 繁中專業占星工作台，採 Swiss Ephemeris 星曆引擎",
+  applicationName: APP_NAME,
+  title: {
+    default: `${APP_NAME} — 專業占星工作台`,
+    template: `%s — ${APP_NAME}`,
+  },
+  description: APP_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: APP_NAME,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/pwa/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/pwa/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/pwa/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#05040b",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -42,6 +70,7 @@ export default function RootLayout({
         <div className="app-bg" aria-hidden="true" />
         <div className="app-bg-overlay" aria-hidden="true" />
         <AppProviders>{children}</AppProviders>
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

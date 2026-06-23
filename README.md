@@ -30,6 +30,13 @@ npm run dev
 
 開啟 http://localhost:3000
 
+### PWA（可安裝到手機主畫面）
+
+- 圖示來源：專案根目錄 `PWA.png`
+- Build 時會產生 `frontend/public/pwa/` 各尺寸圖示
+- 正式環境會註冊 Service Worker（`/sw.js`），支援離線快取與 `~offline` 頁面
+- 本機開發預設不啟用 SW；若要測試 PWA 請執行 `npm run build && npm run start`
+
 ## 環境變數
 
 ### Frontend (`frontend/.env.local`)

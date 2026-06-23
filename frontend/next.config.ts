@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
 
 function apiRemotePatterns(): NonNullable<NextConfig["images"]>["remotePatterns"] {
   const raw = process.env.NEXT_PUBLIC_API_URL;
@@ -18,10 +19,17 @@ function apiRemotePatterns(): NonNullable<NextConfig["images"]>["remotePatterns"
   }
 }
 
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+});
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: apiRemotePatterns(),
   },
+  turbopack: {},
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);
