@@ -2,7 +2,6 @@
 
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { getGlossary } from "@/lib/data/glossary";
-import { useMounted } from "@/lib/hooks/useMounted";
 import { cn } from "@/lib/utils";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -14,18 +13,16 @@ interface AstroTermProps {
 }
 
 export function AstroTerm({ term, children, className, style }: AstroTermProps) {
-  const mounted = useMounted();
   const label = term ?? (typeof children === "string" ? children : "");
   const explanation = getGlossary(label);
+  const text = children ?? term;
 
-  const inner = (
-    <span className={className} style={style}>
-      {children ?? term}
-    </span>
-  );
-
-  if (!mounted || !label || !explanation) {
-    return inner;
+  if (!label || !explanation) {
+    return (
+      <span className={className} style={style}>
+        {text}
+      </span>
+    );
   }
 
   return (
@@ -38,7 +35,7 @@ export function AstroTerm({ term, children, className, style }: AstroTermProps) 
           )}
           style={style}
         >
-          {children ?? term}
+          {text}
         </span>
       </Tooltip.Trigger>
       <Tooltip.Portal>

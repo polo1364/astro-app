@@ -356,6 +356,9 @@ export function TransitPage() {
                           ref={reportRef}
                           transitChartJson={result.transitChartJson ?? {}}
                           analysis={result.analysis}
+                          subjectName={result.natal.meta.name}
+                          birthDate={result.natal.meta.birthDate}
+                          transitDate={result.transitDate}
                           onAiGenerated={handleAiGenerated}
                         />
                       </DataPanel>

@@ -1,25 +1,37 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Alert } from "@/components/ui/Alert";
+import { Spinner } from "@/components/ui/Spinner";
 import { ReportSection } from "@/components/chart/ReportSection";
+import { NatalAnalysisShareCard } from "@/components/chart/NatalAnalysisShareCard";
 import { interpretNatal } from "@/lib/api";
 import {
   finishSimulatedProgress,
   useSimulatedProgress,
 } from "@/lib/hooks/useSimulatedProgress";
 import type { NatalAnalysisReport } from "@/lib/mock/natal";
+import { natalReportFilename } from "@/lib/utils/analysisReportShare";
+import { downloadImageBlob, renderElementToPng } from "@/lib/utils/downloadImage";
 
 export interface NatalAnalysisPanelHandle {
   generate: () => void;
 }
 
+interface NatalMeta {
+  name: string;
+  birthDate: string;
+  birthTime?: string;
+  timezone?: string;
+}
+
 interface NatalAnalysisPanelProps {
   chartJson: Record<string, unknown>;
   analysis: NatalAnalysisReport;
+  meta: NatalMeta;
   onAiGenerated?: (sectionsAi: string) => void;
 }
 
@@ -34,10 +46,13 @@ function parseAiSections(text: string): { title: string; body: string }[] {
 }
 
 export const NatalAnalysisPanel = forwardRef<NatalAnalysisPanelHandle, NatalAnalysisPanelProps>(
-  function NatalAnalysisPanel({ chartJson, analysis, onAiGenerated }, ref) {
+  function NatalAnalysisPanel({ chartJson, analysis, meta, onAiGenerated }, ref) {
+    const shareCardRef = useRef<HTMLDivElement>(null);
     const [aiText, setAiText] = useState<string | null>(analysis.sectionsAi ?? null);
     const [loading, setLoading] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
     useSimulatedProgress(loading, setProgress);
 
@@ -65,25 +80,62 @@ export const NatalAnalysisPanel = forwardRef<NatalAnalysisPanelHandle, NatalAnal
 
     useImperativeHandle(ref, () => ({ generate: handleGenerate }));
 
+    async function handleDownload() {
+      const el = shareCardRef.current;
+      if (!el || downloading) return;
+      setDownloading(true);
+      setDownloadError(null);
+      try {
+        const blob = await renderElementToPng(el);
+        downloadImageBlob(blob, natalReportFilename(meta.name, meta.birthDate));
+      } catch {
+        setDownloadError("圖片產生失敗，請稍後再試");
+      } finally {
+        setDownloading(false);
+      }
+    }
+
     const aiSections = aiText ? parseAiSections(aiText) : [];
     const hasFullReport = aiSections.length > 0;
+    const canDownload = Boolean(analysis.section1Validity && analysis.section2CoreSummary);
 
     return (
       <div id="natal-report-panel" className="space-y-4">
+        <NatalAnalysisShareCard
+          ref={shareCardRef}
+          meta={meta}
+          analysis={analysis}
+          aiText={aiText}
+        />
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h4 className="text-body font-semibold text-accent-natal flex items-center gap-2">
             <Sparkles className="size-5" />
             命盤分析報告
           </h4>
           {!loading && (
-            <Button
-              id="natal-full-report-btn"
-              size="md"
-              onClick={handleGenerate}
-              disabled={!chartJson || Object.keys(chartJson).length === 0}
-            >
-              {hasFullReport ? "重新生成完整報告" : "生成完整報告（三至十段）"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={handleDownload}
+                disabled={!canDownload || downloading}
+                aria-label="下載至本機，不會上傳"
+                title="下載至本機，不會上傳"
+              >
+                {downloading ? <Spinner className="size-4" /> : <Download className="size-4" />}
+                下載圖片
+              </Button>
+              <Button
+                id="natal-full-report-btn"
+                size="md"
+                onClick={handleGenerate}
+                disabled={!chartJson || Object.keys(chartJson).length === 0}
+              >
+                {hasFullReport ? "重新生成完整報告" : "生成完整報告（三至十段）"}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -138,6 +190,7 @@ export const NatalAnalysisPanel = forwardRef<NatalAnalysisPanelHandle, NatalAnal
         )}
 
         {error && <Alert variant="error">{error}</Alert>}
+        {downloadError && <Alert variant="error">{downloadError}</Alert>}
       </div>
     );
   },

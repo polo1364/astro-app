@@ -147,7 +147,22 @@ function renderColoredTerm(
   glossaryKey: string | undefined,
   color: string | undefined,
   nextKey: KeyGen,
+  mode: HighlightMode,
 ): ReactNode {
+  if (mode === "share") {
+    return (
+      <span
+        key={nextKey()}
+        style={{
+          color: color ?? colors.text.primary,
+          fontWeight: color ? 600 : 400,
+        }}
+      >
+        {display}
+      </span>
+    );
+  }
+
   const key = glossaryKey ?? display;
   if (color) {
     return (
@@ -163,20 +178,22 @@ function renderColoredTerm(
   );
 }
 
-const STATUS_PATTERNS: { pattern: RegExp; className: string }[] = [
-  { pattern: /已提供/g, className: "text-status-ok font-medium" },
-  { pattern: /未提供/g, className: "text-status-blocked font-medium" },
-  { pattern: /已確認/g, className: "text-status-ok font-medium" },
-  { pattern: /未確認/g, className: "text-status-blocked font-medium" },
-  { pattern: /可能不準/g, className: "text-status-warn font-medium" },
-  { pattern: /可能略有誤差/g, className: "text-status-warn font-medium" },
-  { pattern: /無法分析/g, className: "text-status-blocked font-medium" },
-  { pattern: /不做分析/g, className: "text-status-blocked font-medium" },
-  { pattern: /入相/g, className: "text-status-ok font-medium" },
-  { pattern: /出相/g, className: "text-text-secondary font-medium" },
-  { pattern: /還在加強/g, className: "text-status-ok font-medium" },
-  { pattern: /高峰可能已過/g, className: "text-text-secondary font-medium" },
+const STATUS_PATTERNS: { pattern: RegExp; className: string; shareColor: string }[] = [
+  { pattern: /已提供/g, className: "text-status-ok font-medium", shareColor: colors.status.ok },
+  { pattern: /未提供/g, className: "text-status-blocked font-medium", shareColor: colors.status.blocked },
+  { pattern: /已確認/g, className: "text-status-ok font-medium", shareColor: colors.status.ok },
+  { pattern: /未確認/g, className: "text-status-blocked font-medium", shareColor: colors.status.blocked },
+  { pattern: /可能不準/g, className: "text-status-warn font-medium", shareColor: colors.status.warn },
+  { pattern: /可能略有誤差/g, className: "text-status-warn font-medium", shareColor: colors.status.warn },
+  { pattern: /無法分析/g, className: "text-status-blocked font-medium", shareColor: colors.status.blocked },
+  { pattern: /不做分析/g, className: "text-status-blocked font-medium", shareColor: colors.status.blocked },
+  { pattern: /入相/g, className: "text-status-ok font-medium", shareColor: colors.status.ok },
+  { pattern: /出相/g, className: "text-text-secondary font-medium", shareColor: colors.text.secondary },
+  { pattern: /還在加強/g, className: "text-status-ok font-medium", shareColor: colors.status.ok },
+  { pattern: /高峰可能已過/g, className: "text-text-secondary font-medium", shareColor: colors.text.secondary },
 ];
+
+export type HighlightMode = "screen" | "share";
 
 type KeyGen = () => string;
 
@@ -198,35 +215,55 @@ function getTermColor(term: string): string | undefined {
   return undefined;
 }
 
-function applyStatusColors(text: string, nextKey: KeyGen): ReactNode[] {
+function renderPlainText(text: string, key: string, mode: HighlightMode): ReactNode {
+  if (mode === "share") {
+    return (
+      <span key={key} style={{ color: colors.text.primary }}>
+        {text}
+      </span>
+    );
+  }
+  return <Fragment key={key}>{text}</Fragment>;
+}
+
+function applyStatusColors(text: string, nextKey: KeyGen, mode: HighlightMode): ReactNode[] {
   const nodes: ReactNode[] = [];
   let remaining = text;
 
   while (remaining.length > 0) {
-    let earliest: { idx: number; len: number; className: string } | null = null;
+    let earliest: { idx: number; len: number; className: string; shareColor: string } | null = null;
 
-    for (const { pattern, className } of STATUS_PATTERNS) {
+    for (const { pattern, className, shareColor } of STATUS_PATTERNS) {
       pattern.lastIndex = 0;
       const match = pattern.exec(remaining);
       if (match && match.index !== undefined) {
         if (!earliest || match.index < earliest.idx) {
-          earliest = { idx: match.index, len: match[0].length, className };
+          earliest = { idx: match.index, len: match[0].length, className, shareColor };
         }
       }
     }
 
     if (!earliest) {
-      if (remaining) nodes.push(<Fragment key={nextKey()}>{remaining}</Fragment>);
+      if (remaining) nodes.push(renderPlainText(remaining, nextKey(), mode));
       break;
     }
 
     if (earliest.idx > 0) {
-      nodes.push(<Fragment key={nextKey()}>{remaining.slice(0, earliest.idx)}</Fragment>);
+      nodes.push(renderPlainText(remaining.slice(0, earliest.idx), nextKey(), mode));
     }
     nodes.push(
-      <span key={nextKey()} className={earliest.className}>
-        {remaining.slice(earliest.idx, earliest.idx + earliest.len)}
-      </span>,
+      mode === "share" ? (
+        <span
+          key={nextKey()}
+          style={{ color: earliest.shareColor, fontWeight: 600 }}
+        >
+          {remaining.slice(earliest.idx, earliest.idx + earliest.len)}
+        </span>
+      ) : (
+        <span key={nextKey()} className={earliest.className}>
+          {remaining.slice(earliest.idx, earliest.idx + earliest.len)}
+        </span>
+      ),
     );
     remaining = remaining.slice(earliest.idx + earliest.len);
   }
@@ -234,23 +271,23 @@ function applyStatusColors(text: string, nextKey: KeyGen): ReactNode[] {
   return nodes;
 }
 
-function enrichPlainSegment(text: string, nextKey: KeyGen, personal = false): ReactNode[] {
+function enrichPlainSegment(text: string, nextKey: KeyGen, personal = false, mode: HighlightMode = "screen"): ReactNode[] {
   const nodes: ReactNode[] = [];
   let remaining = text;
 
   while (remaining.length > 0) {
     const match = findEarliestTermMatch(remaining, personal);
     if (!match) {
-      nodes.push(...applyStatusColors(remaining, nextKey));
+      nodes.push(...applyStatusColors(remaining, nextKey, mode));
       break;
     }
 
     if (match.idx > 0) {
-      nodes.push(...applyStatusColors(remaining.slice(0, match.idx), nextKey));
+      nodes.push(...applyStatusColors(remaining.slice(0, match.idx), nextKey, mode));
     }
 
     nodes.push(
-      renderColoredTerm(match.term, match.glossaryKey, match.color, nextKey),
+      renderColoredTerm(match.term, match.glossaryKey, match.color, nextKey, mode),
     );
     remaining = remaining.slice(match.idx + match.len);
   }
@@ -259,7 +296,12 @@ function enrichPlainSegment(text: string, nextKey: KeyGen, personal = false): Re
 }
 
 /** 括號內白話補充用次要色 */
-function splitParenthetical(text: string, nextKey: KeyGen, personal = false): ReactNode[] {
+function splitParenthetical(
+  text: string,
+  nextKey: KeyGen,
+  personal = false,
+  mode: HighlightMode = "screen",
+): ReactNode[] {
   const nodes: ReactNode[] = [];
   const regex = /（[^）]*）|\([^)]*\)/g;
   let lastIndex = 0;
@@ -267,70 +309,118 @@ function splitParenthetical(text: string, nextKey: KeyGen, personal = false): Re
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      nodes.push(...enrichPlainSegment(text.slice(lastIndex, match.index), nextKey, personal));
+      nodes.push(...enrichPlainSegment(text.slice(lastIndex, match.index), nextKey, personal, mode));
     }
     nodes.push(
-      <span key={nextKey()} className="text-text-secondary">
-        {match[0]}
-      </span>,
+      mode === "share" ? (
+        <span key={nextKey()} style={{ color: colors.text.secondary }}>
+          {match[0]}
+        </span>
+      ) : (
+        <span key={nextKey()} className="text-text-secondary">
+          {match[0]}
+        </span>
+      ),
     );
     lastIndex = match.index + match[0].length;
   }
 
   if (lastIndex < text.length) {
-    nodes.push(...enrichPlainSegment(text.slice(lastIndex), nextKey, personal));
+    nodes.push(...enrichPlainSegment(text.slice(lastIndex), nextKey, personal, mode));
   }
 
-  return nodes.length > 0 ? nodes : enrichPlainSegment(text, nextKey, personal);
+  return nodes.length > 0 ? nodes : enrichPlainSegment(text, nextKey, personal, mode);
 }
 
-export function enrichTerms(text: string): ReactNode[] {
+export function enrichTerms(text: string, mode: HighlightMode = "screen"): ReactNode[] {
   if (!text) return [];
-  return splitParenthetical(text, createKeyGen("term"));
+  return splitParenthetical(text, createKeyGen("term"), false, mode);
 }
 
-/** 報告全文高亮（含盤面依據段落） */
-export function highlightReport(text: string, personal = false): ReactNode[] {
+/** 報告全文高亮（含盤面／配置依據段落） */
+export function highlightReport(
+  text: string,
+  personal = false,
+  mode: HighlightMode = "screen",
+): ReactNode[] {
   if (!text) return [];
 
   const nextKey = createKeyGen("report");
 
-  const evidenceIdx = text.indexOf("盤面依據：");
+  const evidenceIdx = findEvidenceMarkerIndex(text);
   if (evidenceIdx === -1) {
-    return splitParenthetical(text, nextKey, personal);
+    return splitParenthetical(text, nextKey, personal, mode);
   }
 
   const before = text.slice(0, evidenceIdx);
   const after = text.slice(evidenceIdx);
 
   return [
-    ...splitParenthetical(before, nextKey, personal),
-    <span key={nextKey()} className="text-report-evidence font-medium">
-      {splitParenthetical(after, nextKey, personal)}
-    </span>,
+    ...splitParenthetical(before, nextKey, personal, mode),
+    mode === "share" ? (
+      <span key={nextKey()} style={{ color: colors.report.evidence, fontWeight: 600 }}>
+        {splitParenthetical(after, nextKey, personal, mode)}
+      </span>
+    ) : (
+      <span key={nextKey()} className="text-report-evidence font-medium">
+        {splitParenthetical(after, nextKey, personal, mode)}
+      </span>
+    ),
   ];
 }
 
-function renderInlineBold(text: string, keyPrefix: string): ReactNode[] {
+function findEvidenceMarkerIndex(text: string): number {
+  const markers = ["盤面依據：", "配置依據："];
+  let earliest = -1;
+  for (const marker of markers) {
+    const idx = text.indexOf(marker);
+    if (idx !== -1 && (earliest === -1 || idx < earliest)) {
+      earliest = idx;
+    }
+  }
+  return earliest;
+}
+
+function renderInlineBold(text: string, keyPrefix: string, mode: HighlightMode = "screen"): ReactNode[] {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
   return parts.map((part, i) =>
     i % 2 === 1 ? (
-      <strong key={`${keyPrefix}-b-${i}`} className="font-semibold text-text-primary">
-        {part}
-      </strong>
+      mode === "share" ? (
+        <strong
+          key={`${keyPrefix}-b-${i}`}
+          style={{ fontWeight: 600, color: colors.text.primary }}
+        >
+          {part}
+        </strong>
+      ) : (
+        <strong key={`${keyPrefix}-b-${i}`} className="font-semibold text-text-primary">
+          {part}
+        </strong>
+      )
     ) : (
-      <Fragment key={`${keyPrefix}-t-${i}`}>{highlightReport(part)}</Fragment>
+      <Fragment key={`${keyPrefix}-t-${i}`}>{highlightReport(part, false, mode)}</Fragment>
     ),
   );
 }
 
+const SHARE_BODY_STYLE = {
+  fontSize: 22,
+  lineHeight: 1.55,
+  color: colors.text.primary,
+} as const;
+
 /** AI 報告正文輕量排版（粗體、列表） */
-export function renderAiReportBody(text: string): ReactNode {
+export function renderAiReportBody(
+  text: string,
+  bodyClassName = "text-body-lg leading-7 text-text-primary",
+  mode: HighlightMode = "screen",
+): ReactNode {
   if (!text) return null;
   const paragraphs = text.split(/\n\n+/).filter(Boolean);
+  const isShare = mode === "share";
 
   return (
-    <div className="space-y-4">
+    <div style={isShare ? { display: "flex", flexDirection: "column", gap: 16 } : undefined} className={isShare ? undefined : "space-y-4"}>
       {paragraphs.map((para, pi) => {
         const lines = para.split("\n").filter(Boolean);
         const isNumberedList = lines.every((ln) => /^\d+\.\s/.test(ln.trim()));
@@ -338,25 +428,41 @@ export function renderAiReportBody(text: string): ReactNode {
 
         if (isNumberedList) {
           return (
-            <ol key={pi} className="list-decimal pl-5 space-y-3 text-body-lg leading-7">
+            <ol
+              key={pi}
+              className={isShare ? undefined : `list-decimal pl-5 space-y-3 ${bodyClassName}`}
+              style={isShare ? { ...SHARE_BODY_STYLE, margin: 0, paddingLeft: 20 } : undefined}
+            >
               {lines.map((ln, li) => (
-                <li key={li}>{renderInlineBold(ln.replace(/^\d+\.\s*/, ""), `ol-${pi}-${li}`)}</li>
+                <li key={li} style={isShare ? { marginBottom: 12 } : undefined}>
+                  {renderInlineBold(ln.replace(/^\d+\.\s*/, ""), `ol-${pi}-${li}`, mode)}
+                </li>
               ))}
             </ol>
           );
         }
         if (isBulletList) {
           return (
-            <ul key={pi} className="list-disc pl-5 space-y-2 text-body-lg leading-7">
+            <ul
+              key={pi}
+              className={isShare ? undefined : `list-disc pl-5 space-y-2 ${bodyClassName}`}
+              style={isShare ? { ...SHARE_BODY_STYLE, margin: 0, paddingLeft: 20 } : undefined}
+            >
               {lines.map((ln, li) => (
-                <li key={li}>{renderInlineBold(ln.replace(/^[-*]\s*/, ""), `ul-${pi}-${li}`)}</li>
+                <li key={li} style={isShare ? { marginBottom: 8 } : undefined}>
+                  {renderInlineBold(ln.replace(/^[-*]\s*/, ""), `ul-${pi}-${li}`, mode)}
+                </li>
               ))}
             </ul>
           );
         }
         return (
-          <p key={pi} className="text-body-lg leading-7 text-text-primary whitespace-pre-wrap">
-            {renderInlineBold(para, `p-${pi}`)}
+          <p
+            key={pi}
+            className={isShare ? undefined : `whitespace-pre-wrap ${bodyClassName}`}
+            style={isShare ? { ...SHARE_BODY_STYLE, margin: 0, whiteSpace: "pre-wrap" } : undefined}
+          >
+            {renderInlineBold(para, `p-${pi}`, mode)}
           </p>
         );
       })}

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8001";
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "星象觀測台";
@@ -89,14 +88,14 @@ export default async function PersonalSharePage({ params }: PageProps) {
         </h1>
         <p className="text-body text-text-secondary whitespace-pre-wrap">{meta.description}</p>
       </div>
-      <div className="relative w-full max-w-md aspect-[1080/1350] rounded-lg overflow-hidden border border-border">
-        <Image
+      <div className="w-full max-w-md rounded-lg overflow-hidden border border-border bg-black">
+        {/* 使用原生 img，避免 next/image 未設定遠端網域時無法顯示後端 PNG */}
+        <img
           src={meta.imageUrl}
           alt={meta.title}
-          fill
-          className="object-contain bg-black"
-          unoptimized
-          priority
+          width={1080}
+          height={1350}
+          className="w-full h-auto object-contain"
         />
       </div>
       <p className="text-caption text-text-muted">Swiss Ephemeris · 個人化每日行運</p>

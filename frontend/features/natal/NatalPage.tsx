@@ -195,6 +195,12 @@ export function NatalPage() {
                   ref={reportRef}
                   chartJson={result.chartJson ?? {}}
                   analysis={result.analysis}
+                  meta={{
+                    name: result.meta.name,
+                    birthDate: result.meta.birthDate,
+                    birthTime: result.meta.birthTime,
+                    timezone: result.meta.timezone,
+                  }}
                   onAiGenerated={handleAiGenerated}
                 />
               </CardContent>

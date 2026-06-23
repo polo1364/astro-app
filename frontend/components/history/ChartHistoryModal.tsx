@@ -191,6 +191,9 @@ export function ChartHistoryModal({ open, onOpenChange }: ChartHistoryModalProps
 
           <p id="history-desc" className="text-sm text-text-secondary mb-4 shrink-0">
             計算完成後自動儲存至本機 IndexedDB，最多各保留 50 筆。
+            <span className="block mt-1 text-text-muted">
+              不會上傳或與他人共享；換裝置或清除瀏覽資料後紀錄將消失。
+            </span>
             {viewKind === "all" && (
               <span className="block mt-1 text-text-muted">
                 請前往本命盤或行運盤頁面以載入紀錄。

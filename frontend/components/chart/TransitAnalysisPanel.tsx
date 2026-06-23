@@ -1,12 +1,14 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
-import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { ChevronDown, ChevronUp, Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
+import { Spinner } from "@/components/ui/Spinner";
 import { ReportSection } from "@/components/chart/ReportSection";
+import { TransitAnalysisShareCard } from "@/components/chart/TransitAnalysisShareCard";
 import { interpretTransit } from "@/lib/api";
 import {
   finishSimulatedProgress,
@@ -14,6 +16,8 @@ import {
 } from "@/lib/hooks/useSimulatedProgress";
 import type { TransitAnalysisReport, TransitAnalysisSection } from "@/lib/types/transit";
 import { cn } from "@/lib/utils";
+import { transitReportFilename } from "@/lib/utils/analysisReportShare";
+import { downloadImageBlob, renderElementToPng } from "@/lib/utils/downloadImage";
 import { sanitizeTransitAiText } from "@/lib/utils/sanitizeTransitAiText";
 
 export interface TransitAnalysisPanelHandle {
@@ -23,6 +27,9 @@ export interface TransitAnalysisPanelHandle {
 interface TransitAnalysisPanelProps {
   transitChartJson: Record<string, unknown>;
   analysis: TransitAnalysisReport;
+  subjectName: string;
+  birthDate: string;
+  transitDate: string;
   onAiGenerated?: (sectionsAi: string) => void;
 }
 
@@ -59,12 +66,18 @@ function highlightBullets(text: string, max = 3): string[] {
 }
 
 export const TransitAnalysisPanel = forwardRef<TransitAnalysisPanelHandle, TransitAnalysisPanelProps>(
-  function TransitAnalysisPanel({ transitChartJson, analysis, onAiGenerated }, ref) {
+  function TransitAnalysisPanel(
+    { transitChartJson, analysis, subjectName, birthDate, transitDate, onAiGenerated },
+    ref,
+  ) {
+    const shareCardRef = useRef<HTMLDivElement>(null);
     const [aiText, setAiText] = useState<string | null>(
       analysis.sectionsAi ? sanitizeTransitAiText(analysis.sectionsAi) : null,
     );
     const [loading, setLoading] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
     const [fullOpen, setFullOpen] = useState(false);
     useSimulatedProgress(loading, setProgress);
@@ -95,9 +108,25 @@ export const TransitAnalysisPanel = forwardRef<TransitAnalysisPanelHandle, Trans
 
     useImperativeHandle(ref, () => ({ generate: handleGenerate }));
 
+    async function handleDownload() {
+      const el = shareCardRef.current;
+      if (!el || downloading) return;
+      setDownloading(true);
+      setDownloadError(null);
+      try {
+        const blob = await renderElementToPng(el);
+        downloadImageBlob(blob, transitReportFilename(subjectName, transitDate));
+      } catch {
+        setDownloadError("圖片產生失敗，請稍後再試");
+      } finally {
+        setDownloading(false);
+      }
+    }
+
     const aiSections = aiText ? parseAiSections(aiText) : [];
     const hasFullReport = aiSections.length > 0;
     const hasTcj = transitChartJson && Object.keys(transitChartJson).length > 0;
+    const canDownload = Boolean(analysis.section1Validity && analysis.section2Highlights);
 
     const s1 = analysis.section1Validity as TransitAnalysisSection | undefined;
     const s2 = analysis.section2Highlights as TransitAnalysisSection | undefined;
@@ -105,6 +134,15 @@ export const TransitAnalysisPanel = forwardRef<TransitAnalysisPanelHandle, Trans
 
     return (
       <div id="transit-report-panel" className="space-y-4">
+        <TransitAnalysisShareCard
+          ref={shareCardRef}
+          subjectName={subjectName}
+          birthDate={birthDate}
+          transitDate={transitDate}
+          analysis={analysis}
+          aiText={aiText}
+        />
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h4 className="text-body font-semibold text-accent-transit flex items-center gap-2">
             <Sparkles className="size-5" />
@@ -115,14 +153,28 @@ export const TransitAnalysisPanel = forwardRef<TransitAnalysisPanelHandle, Trans
             )}
           </h4>
           {!loading && (
-            <Button
-              id="transit-full-report-btn"
-              size="md"
-              onClick={handleGenerate}
-              disabled={!hasTcj}
-            >
-              {hasFullReport ? "重新生成完整報告" : "生成完整報告（A 至 I 段）"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={handleDownload}
+                disabled={!canDownload || downloading}
+                aria-label="下載至本機，不會上傳"
+                title="下載至本機，不會上傳"
+              >
+                {downloading ? <Spinner className="size-4" /> : <Download className="size-4" />}
+                下載圖片
+              </Button>
+              <Button
+                id="transit-full-report-btn"
+                size="md"
+                onClick={handleGenerate}
+                disabled={!hasTcj}
+              >
+                {hasFullReport ? "重新生成完整報告" : "生成完整報告（A 至 I 段）"}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -208,6 +260,7 @@ export const TransitAnalysisPanel = forwardRef<TransitAnalysisPanelHandle, Trans
         )}
 
         {error && <Alert variant="error">{error}</Alert>}
+        {downloadError && <Alert variant="error">{downloadError}</Alert>}
       </div>
     );
   },

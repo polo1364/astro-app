@@ -1,6 +1,6 @@
-import { toPng } from "html-to-image";
 import { uploadPersonalShareImage } from "@/lib/api";
 import type { PersonalDailySectionKey, PersonalDailySections } from "@/lib/types/personalDailyHoroscope";
+import { downloadImageBlob, renderElementToPng } from "@/lib/utils/downloadImage";
 import { formatTaipeiDisplayDate } from "@/lib/utils/taipeiDate";
 
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "星象觀測台";
@@ -37,26 +37,11 @@ export function shareImageFilename(date: string): string {
 }
 
 export async function renderShareCardToPng(element: HTMLElement): Promise<Blob> {
-  const dataUrl = await toPng(element, {
-    pixelRatio: 2,
-    cacheBust: true,
-    skipAutoScale: true,
-  });
-  const res = await fetch(dataUrl);
-  const blob = await res.blob();
-  if (!blob.size) {
-    throw new Error("分享圖片產生失敗");
-  }
-  return blob;
+  return renderElementToPng(element);
 }
 
 export function downloadShareImage(blob: Blob, date: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = shareImageFilename(date);
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadImageBlob(blob, shareImageFilename(date));
 }
 
 function blobToShareFile(blob: Blob, date: string): File {

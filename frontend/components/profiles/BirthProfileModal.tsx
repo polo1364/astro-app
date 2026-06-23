@@ -155,6 +155,9 @@ export function BirthProfileModal({ open, onOpenChange }: BirthProfileModalProps
             <span className="block mt-1 text-text-muted">
               星盤計算與性別無關；姓名僅供顯示與辨識。
             </span>
+            <span className="block mt-1 text-text-muted">
+              不會上傳或與他人共享；換裝置或清除瀏覽資料後需重新輸入。
+            </span>
           </p>
 
           <div className="overflow-y-auto min-h-0 pr-1 space-y-4">

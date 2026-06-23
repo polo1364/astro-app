@@ -6,10 +6,11 @@ import { PERSONAL_DAILY_SECTION_LABELS } from "@/lib/types/personalDailyHoroscop
 import { PERSONAL_DAILY_SECTION_STYLE_MAP } from "@/lib/tokens/personalDailyHoroscopeSections";
 import { colors } from "@/lib/tokens/colors";
 import { formatTaipeiDisplayDate } from "@/lib/utils/taipeiDate";
+import { getShareCardFontFamilies } from "@/lib/utils/analysisReportShare";
+import { highlightReport } from "@/lib/utils/highlightReport";
 import { COMPACT_SHARE_SECTIONS, SITE_NAME } from "@/lib/utils/personalDailyShare";
 
 const CARD_WIDTH = 1080;
-const CARD_HEIGHT = 1350;
 
 interface PersonalDailyShareCardProps {
   displayName: string;
@@ -23,32 +24,32 @@ export const PersonalDailyShareCard = forwardRef<
 >(function PersonalDailyShareCard({ displayName, date, sections }, ref) {
   const name = displayName || "你";
   const dateLabel = formatTaipeiDisplayDate(date);
+  const fonts = getShareCardFontFamilies();
 
   return (
     <div
-      ref={ref}
       aria-hidden
       className="pointer-events-none"
       style={{
         position: "fixed",
-        left: -9999,
         top: 0,
+        left: 0,
         width: CARD_WIDTH,
-        height: CARD_HEIGHT,
-        zIndex: -1,
+        opacity: 0,
+        pointerEvents: "none",
+        zIndex: 0,
       }}
     >
       <div
+        ref={ref}
+        data-share-card-content
         style={{
           width: CARD_WIDTH,
-          height: CARD_HEIGHT,
           backgroundColor: colors.bg.base,
           color: colors.text.primary,
-          fontFamily: "var(--font-noto), 'Noto Sans TC', sans-serif",
+          fontFamily: fonts.body,
           padding: "56px 64px 48px",
           boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
         }}
       >
         <header style={{ marginBottom: 40, borderBottom: `1px solid ${colors.accent.border}`, paddingBottom: 32 }}>
@@ -63,15 +64,16 @@ export const PersonalDailyShareCard = forwardRef<
           >
             {SITE_NAME}
           </p>
-          <h1
-            style={{
-              margin: "20px 0 8px",
-              fontSize: 44,
-              fontWeight: 700,
-              lineHeight: 1.25,
-              fontFamily: "var(--font-cormorant), serif",
-            }}
-          >
+            <h1
+              style={{
+                margin: "20px 0 8px",
+                fontSize: 44,
+                fontWeight: 700,
+                lineHeight: 1.25,
+                fontFamily: fonts.heading,
+                color: colors.text.primary,
+              }}
+            >
             {name} 的個人今日運勢
           </h1>
           <p style={{ margin: 0, fontSize: 26, color: colors.text.secondary }}>
@@ -79,7 +81,7 @@ export const PersonalDailyShareCard = forwardRef<
           </p>
         </header>
 
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 22 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
           {COMPACT_SHARE_SECTIONS.map((key) => {
             const style = PERSONAL_DAILY_SECTION_STYLE_MAP[key];
             const body = sections[key]?.trim() ?? "";
@@ -102,16 +104,16 @@ export const PersonalDailyShareCard = forwardRef<
                 >
                   {PERSONAL_DAILY_SECTION_LABELS[key]}
                 </p>
-                <p
+                <div
                   style={{
-                    margin: 0,
                     fontSize: 22,
                     lineHeight: 1.55,
-                    color: colors.text.secondary,
+                    color: colors.text.primary,
+                    whiteSpace: "pre-wrap",
                   }}
                 >
-                  {body}
-                </p>
+                  {highlightReport(body, true, "share")}
+                </div>
               </section>
             );
           })}
