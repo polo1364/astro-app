@@ -27,24 +27,27 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Astro Observatory API", version="1.0.0", lifespan=lifespan)
 
-origins = list(
-    dict.fromkeys(
-        [
-            config.FRONTEND_URL,
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            *(o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()),
-        ]
-    )
-)
+local_origins = [
+    config.FRONTEND_URL,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    *(o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()),
+]
+local_origins = list(dict.fromkeys(local_origins))
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_kwargs: dict = {
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+
+if config.IS_PRODUCTION:
+    # Railway 前端網域可能變更；避免 FRONTEND_URL 漏設或尾端斜線導致 CORS 失敗
+    cors_kwargs["allow_origin_regex"] = r"https://.*\.up\.railway\.app"
+else:
+    cors_kwargs["allow_origins"] = local_origins
+
+app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 app.include_router(natal.router)
 app.include_router(transit.router)
