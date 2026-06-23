@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -26,11 +27,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Astro Observatory API", version="1.0.0", lifespan=lifespan)
 
-origins = [
-    config.FRONTEND_URL,
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+origins = list(
+    dict.fromkeys(
+        [
+            config.FRONTEND_URL,
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            *(o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()),
+        ]
+    )
+)
 
 app.add_middleware(
     CORSMiddleware,
