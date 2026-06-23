@@ -2,6 +2,8 @@
 
 Swiss Ephemeris 驅動的繁中專業占星工作台。
 
+**作者：** 蝦蝦 · **版本：** 0.2.0
+
 ## 架構
 
 - `frontend/` — Next.js 16 + Tailwind v4

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TopNav } from "@/components/layout/TopNav";
-import { PageContainer } from "@/components/layout/PageContainer";
+import { AppShell } from "@/components/layout/AppShell";
 import { PublicDailyPanel } from "@/features/daily/PublicDailyPanel";
 import { PersonalDailyPanel } from "@/features/daily/PersonalDailyPanel";
 
@@ -13,14 +12,13 @@ export function HomePage() {
 
   return (
     <>
-      <TopNav />
-      <PageContainer className="py-8 sm:py-12">
+      <AppShell className="py-5 sm:py-12">
         {view === "public" ? (
           <PublicDailyPanel onEnterPersonal={() => setView("personal")} />
         ) : (
           <PersonalDailyPanel onBack={() => setView("public")} />
         )}
-      </PageContainer>
+      </AppShell>
     </>
   );
 }

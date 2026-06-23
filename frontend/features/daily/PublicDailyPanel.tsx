@@ -36,13 +36,13 @@ export function PublicDailyPanel({ onEnterPersonal }: PublicDailyPanelProps) {
     : null;
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col items-center gap-8">
-      <header className="text-center space-y-2">
-        <p className="text-sm text-text-secondary uppercase tracking-widest">
+    <div className="w-full max-w-3xl mx-auto flex flex-col items-center gap-5 sm:gap-8">
+      <header className="text-center space-y-1.5 sm:space-y-2 px-1">
+        <p className="text-xs sm:text-sm text-text-secondary uppercase tracking-widest">
           每日運勢 · 大眾版
         </p>
         <h1
-          className="text-3xl sm:text-4xl font-semibold text-text-primary tracking-tight"
+          className="text-2xl sm:text-4xl font-semibold text-text-primary tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
         >
           今日星座運勢
@@ -101,19 +101,19 @@ export function PublicDailyPanel({ onEnterPersonal }: PublicDailyPanelProps) {
         </div>
       )}
 
-      <div className="text-center w-full max-w-sm">
-        <Button size="lg" className="w-full" onClick={onEnterPersonal}>
+      <div className="text-center w-full max-w-sm px-1">
+        <Button size="lg" className="w-full h-10 sm:h-11 text-sm" onClick={onEnterPersonal}>
           <ClientIcon icon={User} className="size-4" />
           進入個人版運勢
           <ClientIcon icon={ArrowRight} className="size-4" />
         </Button>
-        <p className="text-sm text-text-secondary mt-2">
+        <p className="text-xs sm:text-sm text-text-secondary mt-2 leading-relaxed">
           需填寫出生資料 · 可載入已儲存基本資料
         </p>
       </div>
 
       {pointerHoroscope && (
-        <p className="text-sm sm:text-body text-text-secondary text-center max-w-md leading-relaxed px-2">
+        <p className="hidden sm:block text-sm sm:text-body text-text-secondary text-center max-w-md leading-relaxed px-2">
           <span className="font-semibold text-text-primary">{pointerSign.nameZh}</span>
           {" — "}
           {pointerHoroscope.summary}

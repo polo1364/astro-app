@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { TopNav } from "@/components/layout/TopNav";
-import { PageContainer } from "@/components/layout/PageContainer";
+import { AppShell } from "@/components/layout/AppShell";
 import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
 import { ChartStage } from "@/components/layout/ChartStage";
 import { DataPanel } from "@/components/layout/DataPanel";
@@ -166,8 +165,7 @@ export function NatalPage() {
 
   return (
     <>
-      <TopNav />
-      <PageContainer>
+      <AppShell>
         <div className="mb-5">
           <h1 className="text-xl font-semibold text-text-primary">本命盤</h1>
           <p className="text-caption text-text-secondary mt-1">出生圖分析</p>
@@ -387,7 +385,7 @@ export function NatalPage() {
             )
           }
         />
-      </PageContainer>
+      </AppShell>
     </>
   );
 }

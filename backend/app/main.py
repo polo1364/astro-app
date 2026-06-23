@@ -25,7 +25,11 @@ async def lifespan(app: FastAPI):
     shutdown_scheduler()
 
 
-app = FastAPI(title="Astro Observatory API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="Astro Observatory API",
+    version=config.APP_VERSION,
+    lifespan=lifespan,
+)
 
 local_origins = [
     config.FRONTEND_URL,
@@ -65,6 +69,8 @@ async def health():
         "status": "ok",
         "engine": "Swiss Ephemeris",
         "api_version": "2",
+        "app_version": config.APP_VERSION,
+        "author": config.APP_AUTHOR,
         "database": config.DATABASE_BACKEND,
         "features": [
             "chart_json",

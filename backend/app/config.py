@@ -14,6 +14,9 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
 PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "http://127.0.0.1:8001").rstrip("/")
 IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT") is not None
 
+APP_AUTHOR = "蝦蝦"
+APP_VERSION = "0.2.0"
+
 _RAW_DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
 # Railway 變數引用失敗時可能為空字串，或未解析的 ${{...}} 模板
 if (
