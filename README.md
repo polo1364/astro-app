@@ -59,9 +59,18 @@ FRONTEND_URL=http://localhost:3000
 
 **Backend Variables:**
 - `FRONTEND_URL` = frontend 公開 URL
+- `PUBLIC_API_URL` = backend 公開 URL（Facebook 分享 OG 圖用，須 HTTPS）
 - `DEEPSEEK_API_KEY` = DeepSeek API Key
 - `DEEPSEEK_BASE_URL` = https://api.deepseek.com
 - `DEEPSEEK_MODEL` = deepseek-chat
+- `PORT` = Railway 自動注入，勿手動覆寫
+
+### 常見部署失敗
+
+1. **只建立一個 Service**：本專案是 monorepo，必須分別建立 `frontend` 與 `backend` 兩個 Service，並在 Settings → Root Directory 設為 `frontend` 或 `backend`（不可留空用 repo 根目錄）。
+2. **GitHub Deployments 顯示 Failed**：到 [Railway Dashboard](https://railway.com) 點該次部署 → View Logs，查看 build / start 錯誤訊息。
+3. **Backend build 失敗**：多為 `pyswisseph` 編譯問題；已於 `backend/nixpacks.toml` 加入 `gcc`。重新 Deploy 即可。
+4. **Frontend 啟動後立刻掛掉**：確認 `npm start` 使用 `$PORT`（已設定於 `package.json`）。
 
 ## API 端點
 
