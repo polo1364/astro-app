@@ -65,6 +65,7 @@ async def health():
         "status": "ok",
         "engine": "Swiss Ephemeris",
         "api_version": "2",
+        "database": config.DATABASE_BACKEND,
         "features": [
             "chart_json",
             "natal_analysis",

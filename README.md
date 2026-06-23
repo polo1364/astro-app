@@ -78,7 +78,19 @@ FRONTEND_URL=http://localhost:3000
 - `DEEPSEEK_API_KEY` = DeepSeek API Key
 - `DEEPSEEK_BASE_URL` = https://api.deepseek.com
 - `DEEPSEEK_MODEL` = deepseek-chat
+- `DATABASE_URL` = **用 Railway「Add Reference」連 Postgres**（見下方）
 - `PORT` = Railway 自動注入，勿手動覆寫
+
+### 連接 Postgres（瀏覽人數／每日運勢持久化）
+
+1. Railway Project 內先新增 **PostgreSQL** 服務
+2. 點進 **Backend** → **Variables**
+3. 按 **Add Reference**（或 **New Variable** → **Reference**）
+4. 選 Postgres 服務 → 選 `DATABASE_URL`
+5. 儲存後 **Redeploy Backend**
+6. 驗證：開啟 `https://你的後端/health`，應看到 `"database":"postgresql"`
+
+勿手動輸入 `${{Postgres.DATABASE_URL}}` 文字；若點眼睛顯示 **empty**，代表引用未成功，Backend 會退回 SQLite，瀏覽人數每次部署歸零。
 
 ### 常見部署失敗
 

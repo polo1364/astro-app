@@ -14,12 +14,28 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
 PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "http://127.0.0.1:8001").rstrip("/")
 IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT") is not None
 
-DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{BASE_DIR / 'daily_horoscope.db'}"
+_RAW_DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
+# Railway 變數引用失敗時可能為空字串，或未解析的 ${{...}} 模板
+if (
+    not _RAW_DATABASE_URL
+    or _RAW_DATABASE_URL.startswith("${{")
+    or _RAW_DATABASE_URL == "<empty string>"
+):
+    DATABASE_URL = f"sqlite:///{BASE_DIR / 'daily_horoscope.db'}"
+    DATABASE_BACKEND = "sqlite"
+else:
+    DATABASE_URL = _RAW_DATABASE_URL
+    DATABASE_BACKEND = (
+        "postgresql" if DATABASE_URL.startswith("postgresql") else "sqlite"
+    )
+
 # Railway postgres:// -> postgresql+psycopg://
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+    DATABASE_BACKEND = "postgresql"
 elif DATABASE_URL.startswith("postgresql://") and "+psycopg" not in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+    DATABASE_BACKEND = "postgresql"
 
 DAILY_TIMEZONE = os.getenv("DAILY_TIMEZONE", "Asia/Taipei")
 DAILY_GENERATION_HOUR = int(os.getenv("DAILY_GENERATION_HOUR", "0"))

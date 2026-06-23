@@ -16,7 +16,6 @@ import { useMounted } from "@/lib/hooks/useMounted";
 interface ZodiacDailyWheelProps {
   pointerSign: ZodiacSign;
   rotationDeg: number;
-  reduceMotion: boolean;
   onSelectSign: (signId: string) => void;
   pointerHoroscope?: DailyHoroscopeEntry | null;
   horoscopeLoading?: boolean;
@@ -26,7 +25,6 @@ interface ZodiacDailyWheelProps {
 export function ZodiacDailyWheel({
   pointerSign,
   rotationDeg,
-  reduceMotion,
   onSelectSign,
   pointerHoroscope = null,
   horoscopeLoading = false,
@@ -39,7 +37,7 @@ export function ZodiacDailyWheel({
     clientY: number;
   } | null>(null);
   const hoveredSign = hoverInfo ? getSignById(hoverInfo.signId) : null;
-  const spinDeg = reduceMotion ? 0 : rotationDeg;
+  const spinDeg = rotationDeg;
 
   return (
     <div
@@ -79,7 +77,7 @@ export function ZodiacDailyWheel({
       <div className="absolute inset-0 rounded-full overflow-hidden">
         <div
           className="relative w-full h-full origin-center"
-          style={reduceMotion ? undefined : { transform: `rotate(${spinDeg}deg)` }}
+          style={{ transform: `rotate(${spinDeg}deg)` }}
         >
           <Image
             src="/daily/roulette.png"

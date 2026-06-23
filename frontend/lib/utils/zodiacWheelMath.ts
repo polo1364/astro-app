@@ -73,5 +73,7 @@ export function highlightSectorBounds(signIndex: number): {
 
 /** 把輪盤旋轉到指定星座中心對準指針 */
 export function rotationForSignIndex(index: number): number {
-  return ((360 - index * ZODIAC_SECTOR_DEGREES) % 360 + 360) % 360;
+  return (
+    (SIGN_SECTOR_OFFSET_DEG - index * ZODIAC_SECTOR_DEGREES) % 360 + 360
+  ) % 360;
 }

@@ -35,9 +35,10 @@ def init_db() -> None:
     from app import config
     from app.db import models  # noqa: F401
 
-    if config.IS_PRODUCTION and config.DATABASE_URL.startswith("sqlite"):
+    if config.IS_PRODUCTION and config.DATABASE_BACKEND == "sqlite":
         logging.getLogger(__name__).warning(
-            "Production 使用 SQLite，資料會在重新部署後消失；請設定 DATABASE_URL 連接 Postgres 以持久化瀏覽統計。"
+            "Production 未連上 Postgres（DATABASE_URL 為空或未解析），已退回 SQLite；"
+            "瀏覽統計會在重新部署後歸零。請在 Backend 以「Add Reference」連接 Postgres。"
         )
 
     Base.metadata.create_all(bind=engine)

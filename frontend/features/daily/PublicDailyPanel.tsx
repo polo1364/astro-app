@@ -19,7 +19,6 @@ interface PublicDailyPanelProps {
 
 export function PublicDailyPanel({ onEnterPersonal }: PublicDailyPanelProps) {
   const {
-    mounted,
     rotationDeg,
     pointerSign,
     reduceMotion,
@@ -68,9 +67,8 @@ export function PublicDailyPanel({ onEnterPersonal }: PublicDailyPanelProps) {
         </div>
       ) : (
         <ZodiacDailyWheel
-          rotationDeg={mounted ? rotationDeg : 0}
+          rotationDeg={rotationDeg}
           pointerSign={pointerSign}
-          reduceMotion={reduceMotion || !mounted}
           onSelectSign={openModal}
           pointerHoroscope={pointerHoroscope}
           horoscopeLoading={loading || batch?.status === "pending"}

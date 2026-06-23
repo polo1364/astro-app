@@ -2,17 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getSignByIndex } from "@/lib/data/zodiacSigns";
-import { WHEEL_SPIN_DURATION_MS } from "@/lib/utils/zodiacWheelMath";
+import { rotationForSignIndex, WHEEL_SPIN_DURATION_MS } from "@/lib/utils/zodiacWheelMath";
 import { useMounted } from "@/lib/hooks/useMounted";
 
 export { WHEEL_SPIN_DURATION_MS };
 
 const SECTOR_DURATION_MS = WHEEL_SPIN_DURATION_MS / 12;
+const START_SIGN_INDEX = 10; // 水瓶座
+const START_ROTATION_DEG = rotationForSignIndex(START_SIGN_INDEX);
 
 export function useZodiacWheelSpin() {
   const mounted = useMounted();
-  const [rotationDeg, setRotationDeg] = useState(0);
-  const [pointerIndex, setPointerIndex] = useState(0);
+  const [rotationDeg, setRotationDeg] = useState(START_ROTATION_DEG);
+  const [pointerIndex, setPointerIndex] = useState(START_SIGN_INDEX);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [modalSignId, setModalSignId] = useState<string | null>(null);
 
@@ -32,11 +34,11 @@ export function useZodiacWheelSpin() {
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
-      // 輪盤從 0° 起轉（牡羊在頂端），順時針連續旋轉
-      setRotationDeg(((elapsed / WHEEL_SPIN_DURATION_MS) * 360) % 360);
-      // 中央每 8 秒換一格：牡羊先，依順時針指針順序（牡羊→雙魚→水瓶…）
+      // 輪盤從水瓶座對準指針起轉，逆時針連續旋轉
+      setRotationDeg(START_ROTATION_DEG - ((elapsed / WHEEL_SPIN_DURATION_MS) * 360) % 360);
+      // 中央每 8 秒換一格：水瓶先，依逆時針指針順序（水瓶→雙魚→牡羊…）
       const step = Math.floor(elapsed / SECTOR_DURATION_MS);
-      setPointerIndex(((0 - step) % 12 + 12) % 12);
+      setPointerIndex((START_SIGN_INDEX + step) % 12);
       raf = requestAnimationFrame(tick);
     };
 
@@ -55,7 +57,7 @@ export function useZodiacWheelSpin() {
 
   return {
     mounted,
-    rotationDeg: mounted ? rotationDeg : 0,
+    rotationDeg,
     pointerSign,
     reduceMotion,
     modalSignId,
