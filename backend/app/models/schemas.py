@@ -177,6 +177,40 @@ class TestResponse(BaseModel):
     message: str
 
 
+class ApiUsageTotals(CamelModel):
+    request_count: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+
+
+class ApiUsageByFeature(CamelModel):
+    feature: str
+    label_zh: str
+    request_count: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+
+
+class ApiUsageSummary(CamelModel):
+    totals: ApiUsageTotals
+    by_feature: list[ApiUsageByFeature] = Field(default_factory=list)
+
+
+class HomeVisitRequest(CamelModel):
+    visitor_id: str = Field(..., alias="visitorId")
+
+
+class HomeVisitResponse(CamelModel):
+    recorded: bool
+    total_count: int
+
+
+class VisitorStatsResponse(CamelModel):
+    total_count: int
+
+
 class InterpretResponse(BaseModel):
     text: str
     sections_ai: str | None = None

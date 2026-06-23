@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
 from app.db.session import init_db
-from app.routers import daily, interpret, natal, personal_daily, settings, share, transit
+from app.routers import daily, interpret, natal, personal_daily, settings, share, stats, transit
 from app.scheduler import shutdown_scheduler, start_scheduler, startup_catchup_async
 
 logger = logging.getLogger(__name__)
@@ -56,6 +56,7 @@ app.include_router(interpret.router)
 app.include_router(daily.router)
 app.include_router(personal_daily.router)
 app.include_router(share.router)
+app.include_router(stats.router)
 
 
 @app.get("/health")

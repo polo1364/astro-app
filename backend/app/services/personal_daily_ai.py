@@ -69,6 +69,7 @@ async def generate_personal_horoscope(source_doc: dict[str, Any]) -> tuple[dict[
             PERSONAL_DAILY_SYSTEM_PROMPT,
             build_user_prompt(source_doc),
             max_tokens=2000,
+            feature="personal_daily",
         )
         content = _parse_ai_json(raw)
         return _sanitize_content(content), config.DEEPSEEK_MODEL

@@ -1,6 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from app import config
-from app.models.schemas import DeepSeekKeyRequest, DeepSeekStatusResponse, TestResponse
+from app.db import api_usage_repo
+from app.db.session import get_db
+from app.models.schemas import (
+    ApiUsageSummary,
+    DeepSeekKeyRequest,
+    DeepSeekStatusResponse,
+    TestResponse,
+)
 from app.services.deepseek import test_connection
 
 router = APIRouter(prefix="/settings")
@@ -29,3 +38,9 @@ async def save_deepseek_key(req: DeepSeekKeyRequest):
 async def test_deepseek():
     success, message = await test_connection()
     return {"success": success, "message": message}
+
+
+@router.get("/api-usage", response_model=ApiUsageSummary)
+async def get_api_usage(db: Session = Depends(get_db)):
+    summary = api_usage_repo.get_usage_summary(db)
+    return summary

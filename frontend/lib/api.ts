@@ -56,6 +56,51 @@ export async function testDeepSeekConnection(): Promise<{ success: boolean; mess
   return request("/settings/deepseek/test", { method: "POST" });
 }
 
+export interface ApiUsageTotals {
+  requestCount: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+export interface ApiUsageByFeature {
+  feature: string;
+  labelZh: string;
+  requestCount: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+export interface ApiUsageSummary {
+  totals: ApiUsageTotals;
+  byFeature: ApiUsageByFeature[];
+}
+
+export async function getApiUsage(): Promise<ApiUsageSummary> {
+  return request<ApiUsageSummary>("/settings/api-usage");
+}
+
+export interface HomeVisitResponse {
+  recorded: boolean;
+  totalCount: number;
+}
+
+export async function recordHomeVisit(visitorId: string): Promise<HomeVisitResponse> {
+  return request<HomeVisitResponse>("/stats/home-visit", {
+    method: "POST",
+    body: JSON.stringify({ visitorId }),
+  });
+}
+
+export interface VisitorStats {
+  totalCount: number;
+}
+
+export async function getVisitorTotal(): Promise<VisitorStats> {
+  return request<VisitorStats>("/stats/visitors");
+}
+
 export async function interpretNatal(chartSummary: object): Promise<{ text: string; sectionsAi?: string }> {
   return request("/interpret/natal", {
     method: "POST",

@@ -141,7 +141,7 @@ async def generate_horoscope_for_sign(
         return generate_rule_based_horoscope(source_doc, sign_id)
 
     user_prompt = build_user_prompt(source_doc, sign_id)
-    raw = await interpret_chart(PUBLIC_DAILY_SYSTEM_PROMPT, user_prompt, max_tokens=1200)
+    raw = await interpret_chart(PUBLIC_DAILY_SYSTEM_PROMPT, user_prompt, max_tokens=1200, feature="public_daily")
     try:
         return _parse_ai_json(raw, sign_id)
     except (json.JSONDecodeError, ValueError):

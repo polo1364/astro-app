@@ -1,9 +1,11 @@
+import asyncio
 import json
 
 import httpx
 
 from app import config
 from app.data.ai_rules import NATAL_SYSTEM_PROMPT, TRANSIT_SYSTEM_PROMPT
+from app.db.api_usage_repo import record_usage
 from app.services.transit_ai_context import build_transit_ai_context
 from app.services.transit_ai_sanitize import sanitize_transit_ai_text
 
@@ -29,7 +31,12 @@ async def test_connection() -> tuple[bool, str]:
         return False, f"連線失敗：{e}"
 
 
-async def interpret_chart(system_prompt: str, user_prompt: str, max_tokens: int = 3000) -> str:
+async def interpret_chart(
+    system_prompt: str,
+    user_prompt: str,
+    max_tokens: int = 3000,
+    feature: str | None = None,
+) -> str:
     if not config.DEEPSEEK_API_KEY:
         raise ValueError("尚未設定 DeepSeek API Key")
 
@@ -50,6 +57,16 @@ async def interpret_chart(system_prompt: str, user_prompt: str, max_tokens: int 
     if res.status_code != 200:
         raise ValueError(f"DeepSeek API 錯誤：{res.status_code}")
     data = res.json()
+
+    if feature:
+        usage = data.get("usage") or {}
+        await asyncio.to_thread(
+            record_usage,
+            feature,
+            usage,
+            config.DEEPSEEK_MODEL,
+        )
+
     return data["choices"][0]["message"]["content"]
 
 
@@ -100,10 +117,10 @@ def build_transit_prompt(data: dict) -> str:
 
 async def interpret_transit_sections(transit_chart_json: dict) -> str:
     prompt = build_transit_prompt({"transit_chart_json": transit_chart_json})
-    raw = await interpret_chart(TRANSIT_SYSTEM_PROMPT, prompt, max_tokens=4000)
+    raw = await interpret_chart(TRANSIT_SYSTEM_PROMPT, prompt, max_tokens=4000, feature="transit")
     return sanitize_transit_ai_text(raw)
 
 
 async def interpret_natal_sections(chart_json: dict) -> str:
     prompt = build_natal_prompt(chart_json)
-    return await interpret_chart(NATAL_SYSTEM_PROMPT, prompt)
+    return await interpret_chart(NATAL_SYSTEM_PROMPT, prompt, feature="natal")
