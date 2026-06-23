@@ -16,9 +16,9 @@ def _make_session() -> Session:
 
 
 def test_record_usage_and_aggregate():
-    record_usage("natal", {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}, "deepseek-chat")
-    record_usage("natal", {"prompt_tokens": 200, "completion_tokens": 100, "total_tokens": 300}, "deepseek-chat")
-    record_usage("transit", {"prompt_tokens": 80, "completion_tokens": 40, "total_tokens": 120}, "deepseek-chat")
+    record_usage("natal", {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}, "deepseek-v4-flash")
+    record_usage("natal", {"prompt_tokens": 200, "completion_tokens": 100, "total_tokens": 300}, "deepseek-v4-flash")
+    record_usage("transit", {"prompt_tokens": 80, "completion_tokens": 40, "total_tokens": 120}, "deepseek-v4-flash")
 
     db = _make_session()
     # Manually insert since record_usage uses SessionLocal from app config
@@ -70,5 +70,5 @@ def test_record_usage_missing_fields_defaults_to_zero(monkeypatch):
         return FakeSession()
 
     monkeypatch.setattr("app.db.api_usage_repo.SessionLocal", fake_session_local)
-    record_usage("public_daily", {}, "deepseek-chat")
-    assert captured == [("public_daily", 0, 0, 0, "deepseek-chat")]
+    record_usage("public_daily", {}, "deepseek-v4-flash")
+    assert captured == [("public_daily", 0, 0, 0, "deepseek-v4-flash")]

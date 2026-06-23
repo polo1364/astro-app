@@ -50,7 +50,7 @@ NEXT_PUBLIC_API_URL=http://127.0.0.1:8001
 ```
 DEEPSEEK_API_KEY=sk-...
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-v4-flash
 FRONTEND_URL=http://localhost:3000
 ```
 
@@ -86,7 +86,7 @@ FRONTEND_URL=http://localhost:3000
 - `PUBLIC_API_URL` = backend 公開 URL（Facebook 分享 OG 圖用，須 HTTPS）
 - `DEEPSEEK_API_KEY` = DeepSeek API Key
 - `DEEPSEEK_BASE_URL` = https://api.deepseek.com
-- `DEEPSEEK_MODEL` = deepseek-chat
+- `DEEPSEEK_MODEL` = deepseek-v4-flash
 - `DATABASE_URL` = **用 Railway「Add Reference」連 Postgres**（見下方）
 - `PORT` = Railway 自動注入，勿手動覆寫
 
