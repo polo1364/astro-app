@@ -6,7 +6,7 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3100",
     "build": "node scripts/generate-pwa-icons.mjs && next build --webpack",
     "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "eslint"

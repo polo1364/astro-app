@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 from app import config
 from app.db.daily_repo import (
     all_signs_passed,
+    get_or_create_sky,
     get_horoscope,
     update_sky_status,
     upsert_horoscope,
@@ -18,6 +19,7 @@ from app.db.daily_repo import (
 )
 from app.db.session import SessionLocal
 from app.services.daily_constants import SIGN_IDS
+from app.services.daily_lock import daily_generation_lock
 from app.services.daily_horoscope_ai import generate_horoscope_for_sign
 from app.services.daily_horoscope_source import build_daily_horoscope_source
 from app.services.daily_horoscope_validate import validate_horoscope_content
@@ -60,6 +62,8 @@ async def _generate_one_sign(
 async def generate_daily_horoscope(
     target_date: str | date | None = None,
     force: bool = False,
+    *,
+    on_demand: bool = False,
 ) -> dict[str, Any]:
     if target_date is None:
         d = today_taipei()
@@ -68,6 +72,19 @@ async def generate_daily_horoscope(
     else:
         d = date.fromisoformat(target_date)
 
+    # Keep this session separate: the pipeline commits per sign, while the
+    # PostgreSQL advisory lock must retain its connection for the entire batch.
+    lock_db = SessionLocal()
+    try:
+        with daily_generation_lock(lock_db) as locked:
+            if not locked:
+                return {"date": d.isoformat(), "skipped": True, "status": "pending"}
+            return await _generate_daily_horoscope(d, force, on_demand)
+    finally:
+        lock_db.close()
+
+
+async def _generate_daily_horoscope(d: date, force: bool, on_demand: bool) -> dict[str, Any]:
     date_str = d.isoformat()
     db = SessionLocal()
     try:
@@ -80,6 +97,15 @@ async def generate_daily_horoscope(
                 "status": sky.generation_status if sky else "ready",
                 "passed_sign_count": 12,
             }
+
+        if on_demand:
+            sky = get_or_create_sky(db, d)
+            # Reuse the persisted daily retry budget so polling and restarts
+            # cannot repeatedly incur charges after generation failures.
+            if sky.scheduler_retry_count >= 1 + config.DAILY_SCHEDULER_MAX_RETRIES:
+                return {"date": date_str, "skipped": True, "status": "failed"}
+            sky.scheduler_retry_count += 1
+            db.commit()
 
         source_doc = build_daily_horoscope_source(date_str, config.DAILY_TIMEZONE)
         upsert_source_data(db, source_doc)

@@ -11,7 +11,6 @@ from apscheduler.triggers.cron import CronTrigger
 from app import config
 from app.db.daily_repo import all_signs_passed, get_sky, increment_scheduler_retry
 from app.db.session import SessionLocal
-from app.services.daily_lock import daily_generation_lock
 from app.services.daily_pipeline import (
     generate_daily_horoscope,
     generate_daily_horoscope_sync,
@@ -26,16 +25,9 @@ scheduler = BackgroundScheduler(timezone=TZ)
 
 def run_daily_generation_job() -> None:
     today = today_taipei()
-    db = SessionLocal()
-    try:
-        with daily_generation_lock(db) as locked:
-            if not locked:
-                logger.info("Daily generation skipped: lock busy")
-                return
-            result = generate_daily_horoscope_sync(today, force=False)
-            logger.info("Daily generation done: %s", result)
-    finally:
-        db.close()
+    # The pipeline owns the shared lock for all entry points.
+    result = generate_daily_horoscope_sync(today, force=False)
+    logger.info("Daily generation done: %s", result)
 
 
 def run_daily_retry_check() -> None:
@@ -48,13 +40,10 @@ def run_daily_retry_check() -> None:
         if sky and sky.scheduler_retry_count >= config.DAILY_SCHEDULER_MAX_RETRIES:
             logger.warning("Daily retry limit reached for %s", today)
             return
-        with daily_generation_lock(db) as locked:
-            if not locked:
-                return
-            increment_scheduler_retry(db, today)
-            db.commit()
-            result = generate_daily_horoscope_sync(today, force=False)
-            logger.info("Daily retry generation: %s", result)
+        increment_scheduler_retry(db, today)
+        db.commit()
+        result = generate_daily_horoscope_sync(today, force=False)
+        logger.info("Daily retry generation: %s", result)
     finally:
         db.close()
 

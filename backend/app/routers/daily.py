@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
@@ -12,10 +13,19 @@ from app import config
 from app.db.daily_repo import get_horoscope, get_horoscopes_for_date, get_sky
 from app.db.session import get_db
 from app.services.daily_constants import SIGN_IDS
+from app.services.daily_lock import daily_generation_lock
 from app.services.daily_horoscope_source import sky_summary_from_source
 from app.services.daily_pipeline import generate_daily_horoscope, today_taipei
 
 router = APIRouter(prefix="/daily", tags=["daily"])
+logger = logging.getLogger(__name__)
+
+
+async def _generate_on_visit(d: date) -> None:
+    try:
+        await generate_daily_horoscope(d, on_demand=True)
+    except Exception:
+        logger.exception("On-demand daily generation failed for %s", d)
 
 
 def _resolve_date(date_param: str | None) -> date:
@@ -41,7 +51,8 @@ def _batch_response(db: Session, d: date) -> dict:
     if sky and sky.source_json:
         try:
             source = json.loads(sky.source_json)
-            sky_summary = sky_summary_from_source(source)
+            if source.get("daily_sky"):
+                sky_summary = sky_summary_from_source(source)
         except json.JSONDecodeError:
             pass
 
@@ -73,11 +84,22 @@ def _batch_response(db: Session, d: date) -> dict:
 
 @router.get("/public")
 async def get_public_batch(
+    background_tasks: BackgroundTasks,
     date_param: str | None = Query(None, alias="date"),
     db: Session = Depends(get_db),
 ):
     d = _resolve_date(date_param)
     result = _batch_response(db, d)
+    if d == today_taipei() and result["body"]["status"] != "ready":
+        sky = get_sky(db, d)
+        if sky and sky.scheduler_retry_count >= 1 + config.DAILY_SCHEDULER_MAX_RETRIES:
+            with daily_generation_lock(db) as locked:
+                if locked:
+                    raise HTTPException(status_code=503, detail={**result["body"], "status": "failed"})
+            return {**result["body"], "status": "pending"}
+        background_tasks.add_task(_generate_on_visit, d)
+        result["body"]["status"] = "pending"
+        return result["body"]
     if result["http_status"] == 503:
         raise HTTPException(status_code=503, detail=result["body"])
     return result["body"]

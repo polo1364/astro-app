@@ -1,4 +1,3 @@
-import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -8,21 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import config
 from app.db.session import init_db
 from app.routers import daily, interpret, natal, personal_daily, settings, share, stats, transit
-from app.scheduler import shutdown_scheduler, start_scheduler, startup_catchup_async
-
-logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    start_scheduler()
-    try:
-        await startup_catchup_async()
-    except Exception as exc:
-        logger.warning("Startup catchup failed: %s", exc)
+    # Daily horoscopes are generated when the page requests them, not on startup.
     yield
-    shutdown_scheduler()
 
 
 app = FastAPI(
@@ -35,6 +26,8 @@ local_origins = [
     config.FRONTEND_URL,
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3100",
+    "http://127.0.0.1:3100",
     *(o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()),
 ]
 local_origins = list(dict.fromkeys(local_origins))

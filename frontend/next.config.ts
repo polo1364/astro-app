@@ -25,11 +25,19 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === "development",
 });
 
+// Pin the project root to this frontend folder so Next.js/Turbopack does not
+// mistakenly infer C:\Users\User (which has its own package-lock.json) as root.
+const projectRoot =
+  typeof __dirname !== "undefined" ? __dirname : process.cwd();
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: apiRemotePatterns(),
   },
-  turbopack: {},
+  turbopack: {
+    root: projectRoot,
+  },
+  outputFileTracingRoot: projectRoot,
 };
 
 export default withSerwist(nextConfig);
