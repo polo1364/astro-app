@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/Renhuai123/ziwei-doushu",
+  "commit": "1059c347231c636bd86ddb78fd8ed430d5de8d2a",
+  "sha256": {
+    "algorithm.ts": "94360766179c9716874760360fcc6500ccf3d024c20f6159cd28646bbe9fc5bf",
+    "types.ts": "6d06b609a734d2d3421d0c73e638eba919d016a0b01ab23c3f222d6a1491a93d",
+    "constants.ts": "7dcca9d4479e9f8f0e80d118383ea8eb2dc16b5a87108d35c6cce6d3b196c4e9",
+    "school-config.ts": "657b6ee7a7f4d5519af0ce4cb970013bd455169baf14ee0cf360e5471f99f8cd",
+    "school-data.ts": "8ad7e9d6bbf1f68dbaba84d40f5a2745685fba6c6c68f8da8c4ca9e5288f285f",
+    "school-tables.generated.ts": "224be74733f0bb0cc291323fa873d8084d53aae2fa895f21422bb3fb86720802",
+    "true-solar-time.ts": "8dc93aacdf6a9808c62a586754169ec8e3389f6ba0c9930ee0d9c7479b59f34e",
+    "lunar-javascript.d.ts": "d34f0919bba68f70b0a627b822d1e72611812fe6a4828bfe126741d4103c546f"
+  }
+}

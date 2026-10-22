@@ -23,6 +23,7 @@ const navLinks = [
   { href: "/", label: "首頁" },
   { href: "/natal", label: "本命盤" },
   { href: "/transit", label: "行運盤" },
+  { href: "/ziwei", label: "紫微斗數" },
 ];
 
 export function TopNav() {

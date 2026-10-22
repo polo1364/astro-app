@@ -12,6 +12,7 @@ interface BirthFormFieldsProps {
   onChange: (data: BirthFormData) => void;
   idPrefix?: string;
   defaultAdvancedOpen?: boolean;
+  variant?: "western" | "ziwei" | "profile";
 }
 
 export function BirthFormFields({
@@ -19,6 +20,7 @@ export function BirthFormFields({
   onChange,
   idPrefix = "",
   defaultAdvancedOpen = false,
+  variant = "western",
 }: BirthFormFieldsProps) {
   const [advancedOpen, setAdvancedOpen] = useState(defaultAdvancedOpen);
   const mounted = useMounted();
@@ -93,8 +95,30 @@ export function BirthFormFields({
           }
           className="rounded border-border-subtle"
         />
-        出生時間不詳（將無法分析上升與宮位）
+        {variant === "ziwei" ? "出生時間不詳（無法排紫微命盤）" : "出生時間不詳（將無法分析上升與宮位）"}
       </label>
+
+      {variant !== "western" && (
+        <FieldGroup>
+          <Label htmlFor={id("ziwei-gender")}>紫微排盤性別</Label>
+          <Select
+            id={id("ziwei-gender")}
+            value={data.ziwei?.gender ?? ""}
+            onChange={(e) => onChange({
+              ...data,
+              ziwei: {
+                ...data.ziwei,
+                gender: e.target.value === "male" ? "male" : e.target.value === "female" ? "female" : undefined,
+              },
+            })}
+          >
+            <option value="">請選擇</option>
+            <option value="male">男命</option>
+            <option value="female">女命</option>
+          </Select>
+          <p className="text-caption text-text-muted">用於紫微大限順逆；不影響西洋占星。</p>
+        </FieldGroup>
+      )}
 
       <FieldGroup>
         <Label htmlFor={id("city")}>台灣城市快選</Label>
@@ -154,7 +178,7 @@ export function BirthFormFields({
               />
             </FieldGroup>
           </FormGrid>
-          <FieldGroup>
+          {variant !== "ziwei" && <FieldGroup>
             <Label htmlFor={id("house")}>宮位制</Label>
             <Select
               id={id("house")}
@@ -165,7 +189,7 @@ export function BirthFormFields({
               <option value="Whole Sign">Whole Sign</option>
               <option value="Koch">Koch</option>
             </Select>
-          </FieldGroup>
+          </FieldGroup>}
         </div>
       )}
     </div>

@@ -31,7 +31,7 @@ import { normalizeNatalResult } from "@/lib/normalizeNatal";
 import type { NatalResult } from "@/lib/mock/natal";
 import { calculateNatal } from "@/lib/api";
 import type { BirthFormData } from "@/lib/data/types";
-import { defaultBirthData } from "@/lib/data/defaultBirthData";
+import { useBirthProfileContext } from "@/lib/context/BirthProfileContext";
 import { plainStatsHint } from "@/lib/data/plainLanguage";
 import { useChartHistoryContext } from "@/lib/context/ChartHistoryContext";
 import { useRegisterChartHistoryPage } from "@/lib/hooks/useRegisterChartHistoryPage";
@@ -43,12 +43,13 @@ import {
 } from "@/lib/storage/chartHistoryTypes";
 
 export function NatalPage() {
-  const [birthData, setBirthData] = useState<BirthFormData>(defaultBirthData);
+  const { sharedForm } = useBirthProfileContext();
+  const { birthData, setBirthData, activeProfileId, setActiveProfileId } = sharedForm;
   const [result, setResult] = useState<NatalResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+
   const { notifySaved } = useChartHistoryContext();
   const bannerRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<NatalAnalysisPanelHandle>(null);
@@ -115,7 +116,7 @@ export function NatalPage() {
       bannerRef.current?.focus();
       reportSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
-  }, []);
+  }, [setBirthData]);
 
   const handleAiGenerated = useCallback(
     (sectionsAi: string) => {
@@ -145,7 +146,7 @@ export function NatalPage() {
       activeProfileId,
       setActiveProfileId,
     }),
-    [birthData, activeProfileId],
+    [birthData, activeProfileId, setBirthData, setActiveProfileId],
   );
   useRegisterBirthProfilePage(profileHandlers);
 

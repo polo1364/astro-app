@@ -26,7 +26,7 @@ function formatSavedAt(ts: number): string {
 }
 
 function isChartPage(pathname: string): boolean {
-  return pathname.startsWith("/natal") || pathname.startsWith("/transit");
+  return pathname.startsWith("/natal") || pathname.startsWith("/transit") || pathname.startsWith("/ziwei");
 }
 
 interface BirthProfileModalProps {
@@ -37,7 +37,8 @@ interface BirthProfileModalProps {
 export function BirthProfileModal({ open, onOpenChange }: BirthProfileModalProps) {
   const pathname = usePathname();
   const onChartPage = isChartPage(pathname);
-  const { refreshToken, pageHandlers, notifySaved } = useBirthProfileContext();
+  const { refreshToken, pageHandlers: registeredPage, sharedForm, notifySaved } = useBirthProfileContext();
+  const pageHandlers = registeredPage ?? sharedForm;
   const { entries, loading, error, save, remove, refresh, clearAll } = useBirthProfiles();
   const [draftData, setDraftData] = useState<BirthFormData>(defaultBirthData);
   const [labelInput, setLabelInput] = useState("");
@@ -153,7 +154,7 @@ export function BirthProfileModal({ open, onOpenChange }: BirthProfileModalProps
           <p id="profile-desc" className="text-sm text-text-secondary mb-4 shrink-0">
             填寫姓名、出生日期、時間與地點等資訊，可儲存至本機（最多 30 筆），並帶入左側出生表單。
             <span className="block mt-1 text-text-muted">
-              星盤計算與性別無關；姓名僅供顯示與辨識。
+              西洋星盤計算與性別無關；紫微斗數使用排盤性別。姓名僅供顯示與辨識。
             </span>
             <span className="block mt-1 text-text-muted">
               不會上傳或與他人共享；換裝置或清除瀏覽資料後需重新輸入。
@@ -167,6 +168,7 @@ export function BirthProfileModal({ open, onOpenChange }: BirthProfileModalProps
                 data={draftData}
                 onChange={setDraftData}
                 idPrefix="profile"
+                variant="profile"
               />
               <FieldGroup>
                 <Label htmlFor="profile-label">儲存名稱</Label>
@@ -207,7 +209,7 @@ export function BirthProfileModal({ open, onOpenChange }: BirthProfileModalProps
               </div>
               {!onChartPage && (
                 <p className="text-caption text-text-muted">
-                  前往本命盤或行運盤頁面後，可使用「帶入左側表單」。
+                  前往本命盤、行運盤或紫微斗數頁面後，可使用「帶入左側表單」。
                 </p>
               )}
             </div>

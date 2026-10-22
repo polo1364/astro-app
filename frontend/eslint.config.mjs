@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Pinned, unmodified third-party source; audited via upstream regression tests.
+    "lib/ziwei/vendor/**",
+    "tests/ziwei/upstream-integrity.ts",
   ]),
 ]);
 

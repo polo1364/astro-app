@@ -34,12 +34,12 @@ env("CORS_ORIGINS")        = cors
 ' backend: install deps if uvicorn missing, then run (no --reload for clean background)
 beCmd = "cmd /c " & Q & "( (py -m uvicorn --version >nul 2>&1 || py -m pip install -r requirements.txt) & py -m uvicorn app.main:app --host 127.0.0.1 --port " & beport & " ) > " & Q & logs & "\backend.log" & Q & " 2>&1" & Q
 sh.CurrentDirectory = root & "backend"
-sh.Run beCmd, 0, False
+If Not PortListening(beport) Then sh.Run beCmd, 0, False
 
 ' frontend: npm install on first run, then dev server
-feCmd = "cmd /c " & Q & "( if not exist node_modules\next\package.json call npm install & call npm run dev -- -p " & feport & " ) > " & Q & logs & "\frontend.log" & Q & " 2>&1" & Q
+feCmd = "cmd /c " & Q & "( (if not exist node_modules\next\package.json (call npm install || exit /b 1)) & call npm run dev -- -p " & feport & " ) > " & Q & logs & "\frontend.log" & Q & " 2>&1" & Q
 sh.CurrentDirectory = root & "frontend"
-sh.Run feCmd, 0, False
+If Not PortListening(feport) Then sh.Run feCmd, 0, False
 
 ' wait until the frontend port is listening, then open the browser
 checkCmd = "cmd /c netstat -ano | findstr " & Q & ":" & feport & " " & Q & " | findstr LISTENING"
@@ -53,4 +53,14 @@ Do
   tries = tries + 1
 Loop While rc <> 0 And tries < 300
 
-If rc = 0 Then sh.Run openCmd, 0, False
+If rc = 0 Then
+  sh.Run openCmd, 0, False
+Else
+  MsgBox "Frontend did not start. See logs in:" & vbCrLf & logs, vbExclamation, "Astro Observatory"
+End If
+
+Function PortListening(port)
+  Dim cmd
+  cmd = "cmd /c netstat -ano | findstr " & Q & ":" & port & " " & Q & " | findstr LISTENING"
+  PortListening = (sh.Run(cmd, 0, True) = 0)
+End Function

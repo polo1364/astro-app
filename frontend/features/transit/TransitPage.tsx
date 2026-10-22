@@ -32,7 +32,7 @@ import type { TransitResult } from "@/lib/types/transit";
 import { normalizeTransitResult } from "@/lib/normalizeTransit";
 import { calculateTransit } from "@/lib/api";
 import type { BirthFormData } from "@/lib/data/types";
-import { defaultBirthData } from "@/lib/data/defaultBirthData";
+import { useBirthProfileContext } from "@/lib/context/BirthProfileContext";
 import { pickSampleBirth, pickSampleTransitDate } from "@/lib/data/randomFill";
 import { useChartHistoryContext } from "@/lib/context/ChartHistoryContext";
 import { useRegisterChartHistoryPage } from "@/lib/hooks/useRegisterChartHistoryPage";
@@ -47,13 +47,14 @@ export function TransitPage() {
   const [result, setResult] = useState<TransitResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [birthData, setBirthData] = useState<BirthFormData>(defaultBirthData);
+  const { sharedForm } = useBirthProfileContext();
+  const { birthData, setBirthData, activeProfileId, setActiveProfileId } = sharedForm;
   const [transitDate, setTransitDate] = useState("2026-06-22");
   const [transitTime, setTransitTime] = useState("12:00");
   const [useTransitTime, setUseTransitTime] = useState(true);
   const [activeTab, setActiveTab] = useState("dual");
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+
   const bannerRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<TransitAnalysisPanelHandle>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
@@ -137,7 +138,7 @@ export function TransitPage() {
       bannerRef.current?.focus();
       wheelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
-  }, []);
+  }, [setBirthData]);
 
   const handleAiGenerated = useCallback(
     (sectionsAi: string) => {
@@ -168,7 +169,7 @@ export function TransitPage() {
       activeProfileId,
       setActiveProfileId,
     }),
-    [birthData, activeProfileId],
+    [birthData, activeProfileId, setBirthData, setActiveProfileId],
   );
   useRegisterBirthProfilePage(profileHandlers);
 
